@@ -5,7 +5,7 @@ DIRPROFILE="${ROOT}/profiles"
 
 function PrintUsage {
     echo 
-    echo "usage $0 status | start | stop | restart | shell "
+    echo "usage $0 status | start | stop | restart | shell | profiles | set-default"
     echo "Options:"
     echo "-p profile - set profile (default profile default)"
     echo "-d - debug mode"
@@ -13,6 +13,8 @@ function PrintUsage {
     echo "Examples:"
     echo "$0 start - start container"
     echo "$0 stop - stop container"
+    echo "$0 profiles - list profiles"
+    echo "$0 -p ubuntu-prof set-default - set profile ubuntu-prof as default profile"
     echo "$0 -p cups-ubuntu restart - restart container with profile cups-ubuntu"
     echo ""
 }
@@ -43,12 +45,35 @@ function ErrorExit {
   exit 5
 }
 
+
+function DoListProfiles {
+
+  [[ -v DEBUG ]] && DebugMSG  "List profiles in dir ${DIRPROFILE} "
+  echo List profiles:
+  (cd ${DIRPROFILE}; for ITEM in `ls -1`; do echo -n "  ${ITEM}"; [[ -L "${ITEM}" ]] && echo -n " -> $(readlink "${ITEM}")"; echo ""; done ) 
+  exit 0
+}
+
+function DoSetDefault {
+
+  [[ -v DEBUG ]] && DebugMSG  "Set profile ${PROFILENAME} as default in ${DIRPROFILE} "
+
+  [[ ${PROFILENAME} == "default" ]] && ErrorExit "Profile default already default"
+  [[ -L "${DIRPROFILE}/default" ]] && rm "${DIRPROFILE}/default"
+  [[ -e "${DIRPROFILE}/default" ]] && ErrorExit "Profile default exist and is not symlink!"
+
+  (cd ${DIRPROFILE}  && ln -s ${PROFILENAME} default) 
+  exit 0
+}
+
+
 function DoShell {
 
   [[ -v DEBUG ]] && DebugMSG  "docker  exec -it  ${CONTAINER} $SHELL"
   docker  exec -it  ${CONTAINER} $SHELL
   exit 0
 }
+
 
 function DoStop {
   [[ -v DEBUG ]] && DebugMSG "docker stop ${CONTAINER}"
@@ -105,10 +130,14 @@ function DoStatus {
 
 function GetOpts {
     PROFILE="${DIRPROFILE}/default"
+    PROFILENAME="default"
+    
     while getopts "dhp:" options
 	do
 	    case "${options}" in
-		p) PROFILE="${DIRPROFILE}/${OPTARG}"
+		p) 
+		PROFILE="${DIRPROFILE}/${OPTARG}"
+		PROFILENAME=${OPTARG}
 		;;
 		h) UsageExit 0
 		;;

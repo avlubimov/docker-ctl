@@ -30,6 +30,12 @@ case $COMMAND in
     status)
 	DoStatus
 	;;
+    set-default)
+	DoSetDefault
+	;;
+    profiles)
+	DoListProfiles
+	;;
     restart)
 	DoRestart
 	;;

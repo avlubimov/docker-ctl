@@ -1,7 +1,7 @@
 FROM alpine:latest
 ARG USER=admin
-ARG PASSWORD=admin
 ARG GROUP=lpadmin
+ARG PASSWORD=admin
 
 MAINTAINER AVL <avlubimov@gmail.com>
 LABEL maintainer="AVL <avlubimov@gmail.com>"
